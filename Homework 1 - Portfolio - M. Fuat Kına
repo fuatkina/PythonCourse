@@ -1,0 +1,112 @@
+#Mehmet Fuat Kına - Sociology PHD
+
+import random
+
+class Portfolio():    #creates a portfolio class which take four instances 
+    def __init__(self, cash = 0.0, stock = {}, mutualFunds = {}, transactions = []):
+        self.cash = cash
+        self.stock = stock
+        self.mutualFunds = mutualFunds
+        self.transactions = transactions   
+    def __str__ (self):  #prints current amounts of cash, stock and mutual funds
+        return "#cash: ${}\n#stock: {} \n#mutual funds: {}".format(self.cash, self.stock, self.mutualFunds)        
+    def addCash(self, amount): #adds an additional amount of cash to the portfolio
+        self.cash = self.cash + amount
+        self.transactions.append('{} amount cash added'.format(amount))  #keeps the operation
+    def withdrawCash(self, amount):  #withdraws an amount of existing cash
+        self.cash = self.cash - amount
+        self.transactions.append('{} amount cash removed'.format(amount))  #keeps the operation
+    def buyStock(self, x, s):  #buys a definite stock (s) with its symbol and the amount (x)
+        if (type(x) != int):  #this amount should be an integer
+            return 'enter an integer value.'  
+        self.cash = self.cash - (x * s.price)  #withdraws cash, while buying the stock 
+        if s.symbol in self.stock.keys():
+            self.stock[s.symbol] += x  #if that stock is added to the portfolio before, then adds the amount by using the same symbol
+        else:
+            self.stock[s.symbol] = x
+        self.transactions.append('{} {} amount stock bought'.format(x, s.symbol))  #keeps the operation      
+    def sellStock(self, s, x):   #here it takes the stock as class, not through the symbol of that stock, which is different from the assigned function in HW.     
+        if (type(x) != int):
+            return 'enter an integer value.'        
+        self.cash = self.cash + (random.uniform(0.5,1.5)*x*s.price) #adds cash, while selling the stock
+        if s.symbol in self.stock.keys():
+            self.stock[s.symbol] -= x  #decreases sold stocks from the portfolio by calling its symbol
+        else:
+            print('There is no this kind of stock in this portfolio')        
+        self.transactions.append('{} {} amount stock sold'.format(x, s.symbol))   #keeps the operation     
+    def buyMutualFund(self, y, mf):   #buys a definite mutual fund (mf), by calling its symbol
+        self.cash = self.cash - y      #y is the amount of mutual fund, it also equals to the price whil buying
+        if mf.symbol in self.mutualFunds.keys():
+            self.mutualFunds[mf.symbol] += y   ##adds the amount to the porfolio by calling its symbol, if it is added before 
+        else:
+            self.mutualFunds[mf.symbol] = y    #adds the amount and the symbol to the porfolio, if it is not added before        
+        self.transactions.append('{} {} amount mutual fund bought'.format(y, mf.symbol))  #keeps the operation  
+    def sellMutualFund(self, symbol, y):    #sells the mutual fund by calling its symbol             
+        self.cash = self.cash + y*random.uniform(0.9,1.2)   #increases cash since it is sold
+        if symbol in self.mutualFunds.keys():
+            self.mutualFunds[symbol] -= y
+        else:
+            print('There is no this kind of fund in this portfolio')        
+        self.transactions.append('{} {} amount mutual fund sold'.format(y, symbol))  #keeps the operation  
+    def history(self):  #presents all operations done, ordered by time, since it is a list.
+        print(self.transactions)
+
+class MutualFund():   #defines the mutual fund class 
+    def __init__(self, symbol):
+        self.symbol = symbol
+
+class Stock():    #defines the stock class
+    def __init__(self, price, symbol):
+        self.price = price
+        self.symbol = symbol
+
+#---- the list of working codes in my homework
+
+portfolio = Portfolio() #Creates a new portfolio
+portfolio.addCash(300.50) #Adds cash to the portfolio
+s = Stock(20, "HFH") #Create Stock with price 20 and symbol "HFH"
+portfolio.buyStock(5, s) #Buys 5 shares of stock s
+mf1 = MutualFund("BRT") #Create MF with symbol "BRT"
+mf2 = MutualFund("GHT") #Create MF with symbol "GHT"
+portfolio.buyMutualFund(10.3, mf1) #Buys 10.3 shares of "BRT"
+portfolio.buyMutualFund(2, mf2) #Buys 2 shares of "GHT"
+print(portfolio) #Prints portfolio
+#cash: $140.50
+#stock: 5 HFH
+#mutual funds: 10.33 BRT
+# 2 GHT
+portfolio.sellMutualFund("BRT", 3) #Sells 3 shares of BRT
+portfolio.sellStock(s, 5) #Sells 1 share of HFH
+portfolio.withdrawCash(50) #Removes $50
+portfolio.history() #Prints a list of all transactions
+#ordered by time
+
+#---- the test functions
+
+import unittest
+test_portfolio = Portfolio()   #these are defined for the test functions
+test_stock = Stock (20,"HFH")    
+test_mf = MutualFund ("GRT")
+
+class TestPortfolio(unittest.TestCase):   #carries out one test for each function in the portfolio class    
+    def test_addCash(self):            
+        test_portfolio.addCash(50)
+        self.assertEqual(test_portfolio.cash, 50)    
+    def test_withdrawCash(self):            
+        test_portfolio.cash=50
+        test_portfolio.withdrawCash(20)
+        self.assertEqual(test_portfolio.cash, 50-20)
+    def test_buyStock(self): 
+        test_portfolio.buyStock(1,test_stock)          
+        self.assertTrue(test_stock.symbol in test_portfolio.stock.keys())
+    def test_sellStock(self): 
+        test_portfolio.sellStock(test_stock,1)          
+        self.assertFalse(0, test_portfolio.stock[test_stock.symbol])
+    def test_buyMutualFund (self):
+        test_portfolio.buyMutualFund(2, test_mf)
+        self.assertTrue(test_mf.symbol in test_portfolio.mutualFunds.keys())
+    def test_sellMutualFund (self):
+        test_portfolio.sellMutualFund("GRT", 2)
+        self.assertEqual(0, test_portfolio.mutualFunds[test_mf.symbol])
+if __name__ == '__main__':
+    unittest.main()
