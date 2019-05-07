@@ -1,0 +1,37 @@
+import pandas as pd
+import numpy as np
+import os
+os.chdir('.')
+from sklearn.gaussian_process import GaussianProcessRegressor
+from sklearn.gaussian_process.kernels import ConstantKernel, RBF
+
+survey_file = 'https://raw.githubusercontent.com/carlson9/KocPython2019/master/12.GaussianProcesses/immSurvey.csv'
+tt = pd.read_csv(survey_file)
+tt.head()
+
+alphas = tt.stanMeansNewSysPooled
+sample = tt.textToSend
+
+from sklearn.feature_extraction.text import TfidfVectorizer
+vec = TfidfVectorizer(ngram_range=(1,2))
+# by ngram_range=(1,2), I also include bigrams in addition to unigrams.
+
+X = vec.fit_transform(sample)
+pd.DataFrame(X.toarray(), columns=vec.get_feature_names())
+
+from sklearn.model_selection import train_test_split
+Xtrain, Xtest, ytrain, ytest = train_test_split(X, alphas,
+random_state=1)
+
+rbf = ConstantKernel(1.0) * RBF(length_scale=1.0)
+gpr = GaussianProcessRegressor(kernel=rbf, alpha=1e-8)
+
+gpr.fit(Xtrain.toarray(), ytrain)
+
+mu_s, cov_s = gpr.predict(Xtest.toarray(), return_cov=True)
+
+np.corrcoef(ytest, mu_s)
+
+# the new correlation coefficient matrix is here:
+#       array([[1.        , 0.64347499],
+#              [0.64347499, 1.        ]])
